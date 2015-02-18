@@ -12,12 +12,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.itb.bram.mobileidcompanion.CaptureSignature;
 import com.itb.bram.mobileidcompanion.MainActivity;
 import com.itb.bram.mobileidcompanion.R;
 
 import org.codepond.wizardroid.WizardStep;
 import org.codepond.wizardroid.persistence.ContextVariable;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 /**
  * Form Register Step 2 : Scan QR Code
@@ -29,7 +34,7 @@ public class RegisterStep2 extends WizardStep {
     @ContextVariable
     private String PIN1;
 
-    Button SigBtn;
+    Button ScanBtn;
 
     //Registration URL
     private String RegContentText = "No Data Set";
@@ -44,12 +49,15 @@ public class RegisterStep2 extends WizardStep {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.regstep2, container, false);
 
-        TextView RegContent = (TextView) v.findViewById(R.id.RegContentTv);
+        ScanBtn = (Button) v.findViewById(R.id.ScanQRBtn);
+        final TextView RegContent = (TextView) v.findViewById(R.id.RegContentTv);
 
         //inject value
         RegContent.setText(RegContentText);
         return v;
     }
+
+
 
     @Override
     public void onExit(int exitCode) {
