@@ -19,8 +19,7 @@ import android.widget.ImageView;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
+
 
 import java.io.ByteArrayOutputStream;
 
@@ -33,51 +32,16 @@ public class MainActivity extends Activity implements OnClickListener {
     private static final String PROPERTY_QRCODE = "QRCode";
     private static final String PROPERTY_SIGNATURE = "Signature";
 
-    Button LaunchReg, CaptureSig, ScanQR;
-    ImageView signImage;
-    TextView QRContent;
-
-    final int SignatureReqCode = 0;
-    final int QRReqCode = 1;
-
-    String EncodedSignature;
-    String QRContentText;
+    Button LaunchReg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-
-        signImage = (ImageView) findViewById(R.id.imageView1);
 
         //button to launch Register Activity
         LaunchReg = (Button) findViewById(R.id.LaunchReg);
         LaunchReg.setOnClickListener(this);
-        CaptureSig = (Button) findViewById(R.id.CreateSig);
-        CaptureSig.setOnClickListener(this);
-        ScanQR = (Button) findViewById(R.id.ScanQR);
-        ScanQR.setOnClickListener(this);
-
-        QRContent = (TextView) findViewById(R.id.QRContent);
-    }
-
-    protected void onResume()
-    {
-        super.onResume();
-        //refresh interface
-        EncodedSignature = getSignature(context);
-        if (!(EncodedSignature.isEmpty())) {
-            byte[] imageAsBytes = Base64.decode(EncodedSignature, Base64.DEFAULT);
-            signImage.setImageBitmap(BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.length));
-            //show imageview
-            signImage.setVisibility(View.VISIBLE);
-        }
-        QRContentText = getQRContent(context);
-        if (!(QRContentText.isEmpty())) {
-            //show text
-            QRContent.setText(QRContentText);
-        }
     }
 
     @Override
@@ -88,42 +52,7 @@ public class MainActivity extends Activity implements OnClickListener {
                 Intent i = new Intent(MainActivity.this, RegisterActivity.class);
                 startActivity(i);
                 break;
-
-            case R.id.CreateSig:
-                Intent j = new Intent(MainActivity.this, CaptureSignature.class);
-                startActivityForResult(j, SignatureReqCode);
-                break;
-
-            case R.id.ScanQR:
-                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-                intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-                startActivityForResult(intent, QRReqCode);
-                break;
         }
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case SignatureReqCode:
-                if (resultCode == RESULT_OK) {
-                    byte[] b = data.getByteArrayExtra("byteArray");
-                    String encoded = Base64.encodeToString(b, Base64.DEFAULT);
-                    storeSignature(context, encoded);
-                }
-
-            case QRReqCode:
-                if (resultCode == RESULT_OK) {
-                    // Handle successful scan
-                    QRContentText = data.getStringExtra("SCAN_RESULT");
-                    storeQRContent(context, QRContentText);
-                } else if (resultCode == RESULT_CANCELED) {
-                    // Handle cancel
-                }
-        }
-
-
     }
 
     /**
@@ -137,11 +66,28 @@ public class MainActivity extends Activity implements OnClickListener {
                 Context.MODE_PRIVATE);
     }
 
+    private void deleteSignature(Context context) {
+        final SharedPreferences prefs = getAppPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove(PROPERTY_SIGNATURE);
+        editor.commit();
+        Log.i(TAG, "Signature deleted");
+    }
+
+    private void deleteQRContent(Context context) {
+        final SharedPreferences prefs = getAppPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove(PROPERTY_QRCODE);
+        editor.commit();
+        Log.i(TAG, "QR Content deleted");
+    }
+
     private void storeSignature(Context context, String signature) {
         final SharedPreferences prefs = getAppPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PROPERTY_SIGNATURE, signature);
         editor.commit();
+        Log.i(TAG, "Storing Signature");
     }
 
     private void storeQRContent(Context context, String content) {
@@ -149,14 +95,15 @@ public class MainActivity extends Activity implements OnClickListener {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PROPERTY_QRCODE, content);
         editor.commit();
+        Log.i(TAG, "Storing QR Content");
     }
 
     private String getSignature(Context context) {
         final SharedPreferences prefs = getAppPreferences(context);
         String Signature = prefs.getString(PROPERTY_SIGNATURE, "");
         if (Signature.isEmpty()) {
-            Log.i(TAG, "There's no ID Number in preferences");
-            return "";
+            Log.i(TAG, "There's no Signature in preferences");
+            return null;
         }
         return Signature;
     }
@@ -166,7 +113,7 @@ public class MainActivity extends Activity implements OnClickListener {
         String Content = prefs.getString(PROPERTY_QRCODE, "");
         if (Content.isEmpty()) {
             Log.i(TAG, "There's no QRCode content in preferences");
-            return "";
+            return null;
         }
         return Content;
     }

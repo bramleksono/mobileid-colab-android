@@ -126,8 +126,10 @@ public class CaptureSignature extends Activity {
             Intent intent = new Intent();
             intent.putExtra("byteArray", bs.toByteArray());
             setResult(1, intent);
-            finish();
+            bs.flush();
+            bs.close();
 
+            /*
             String path = Environment.getExternalStorageDirectory().toString()+ "/myImages/";
             File signatureDirectory = new File(path);
             signatureDirectory.mkdirs();
@@ -144,6 +146,9 @@ public class CaptureSignature extends Activity {
 
             bos.flush();
             bos.close();
+            */
+
+            finish();
         }
 
         @Override
