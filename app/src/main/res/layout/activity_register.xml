@@ -1,108 +1,179 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:id="@+id/scrollView"
+    tools:context="com.itb.bram.mobileidcompanion.RegisterActivity"
+    android:layout_width="match_parent"
+    android:fillViewport="false">
+
+<LinearLayout
         android:orientation="vertical"
         android:layout_height="match_parent"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        tools:context="com.itb.bram.mobileidcompanion.RegisterActivity">
+    android:layout_width="match_parent">
+
+    <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Step 1"
+                android:id="@+id/Step1Title"
+                android:layout_gravity="center_horizontal" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/background_light">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/subPIN"
+                android:text="Enter Desired PIN"
+                android:textSize="20dp" />
+
+        <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberPassword"
+                android:ems="10"
+                android:maxLength="10"
+                android:id="@+id/PIN1Field"
+                android:hint="Your PIN"
+                android:phoneNumber="false"
+                android:singleLine="true" />
+
+        <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberPassword"
+                android:ems="10"
+                android:maxLength="10"
+                android:id="@+id/PIN2Field"
+                android:hint="Re-enter your PIN"
+                android:singleLine="true" />
+    </LinearLayout>
 
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Step 1"
-            android:id="@+id/Step1Title"
-            android:layout_gravity="center_horizontal|top" />
+            android:text="Step 2"
+            android:id="@+id/Step2Title"
+            android:layout_gravity="center_horizontal" />
 
-    <TextView
-            android:layout_width="match_parent"
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/background_light" >
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/textView"
-            android:text="Enter Your Desired PIN"
+            android:text="Draw Signature"
             android:textSize="20dp" />
 
-    <EditText
-            android:layout_width="fill_parent"
+        <Button
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="numberPassword"
-            android:ems="10"
-            android:maxLength="10"
-            android:id="@+id/PIN1Field"
-            android:hint="Your PIN"
-            android:phoneNumber="false"
-            android:layout_marginTop="20dp"
-            android:singleLine="true" />
+            android:text="Draw"
+            android:id="@+id/CreateSigBtn"
+            android:layout_gravity="center_horizontal" />
 
-    <EditText
-            android:layout_width="fill_parent"
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="200dp"
+            android:layout_height="113dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_launcher"
+            android:visibility="invisible" />
+    </LinearLayout>
+
+    <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="numberPassword"
-            android:ems="10"
-            android:maxLength="10"
-            android:id="@+id/PIN2Field"
-            android:hint="Re-enter your PIN"
-            android:layout_marginTop="20dp"
-            android:singleLine="true" />
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Step 3"
+            android:id="@+id/Step3Title"
+            android:layout_gravity="center_horizontal" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Step 2"
-        android:id="@+id/Step2Title"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/background_light" >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView3"
-        android:text="Draw Signature"
-        android:textSize="20dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Draw"
-        android:id="@+id/CreateSig"
-        android:layout_gravity="center_horizontal" />
-
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="200dp"
-        android:layout_height="113dp"
-        android:layout_gravity="center"
-        android:src="@drawable/ic_launcher"
-        android:visibility="invisible"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Step 3"
-        android:id="@+id/Step3Title"
-        android:layout_gravity="center_horizontal" />
-
-    <TextView
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/textView"
+            android:id="@+id/textView2"
             android:text="Scan QR Code"
-        android:textSize="20dp" />
+            android:textSize="20dp" />
 
-    <Button
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Scan"
-            android:id="@+id/ScanQR"
+            android:id="@+id/ScanQRBtn"
             android:layout_gravity="center_horizontal" />
 
-    <TextView
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Empty Content"
             android:id="@+id/QRContentTv"
             android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Step 4"
+            android:id="@+id/Step4Title"
+            android:layout_gravity="center_horizontal" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/background_light" >
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/subSum"
+                android:text="Waiting For CA"
+                android:textSize="20dp" />
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Empty Content"
+                android:id="@+id/ReviewTv"
+                android:layout_gravity="center_horizontal"
+            android:visibility="invisible" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:id="@+id/SubmitRegBtn"
+            android:layout_gravity="center_horizontal"
+            android:visibility="invisible" />
+    </LinearLayout>
+
 
 </LinearLayout>
 
+</ScrollView>

@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -41,6 +42,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Capture Signature Activity
@@ -128,25 +130,6 @@ public class CaptureSignature extends Activity {
             setResult(1, intent);
             bs.flush();
             bs.close();
-
-            /*
-            String path = Environment.getExternalStorageDirectory().toString()+ "/myImages/";
-            File signatureDirectory = new File(path);
-            signatureDirectory.mkdirs();
-
-            String imagefile = "signature.jpg";
-
-            File sdImageMainDirectory = new File (signatureDirectory,imagefile);
-            FileOutputStream fileOutputStream = null;
-
-            fileOutputStream = new FileOutputStream(sdImageMainDirectory);
-            BufferedOutputStream bos = new BufferedOutputStream(fileOutputStream);
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(returnedBitmap, 640, 360, false);
-            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 50, bos);
-
-            bos.flush();
-            bos.close();
-            */
 
             finish();
         }

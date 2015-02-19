@@ -28,7 +28,6 @@ public class MainActivity extends Activity implements OnClickListener {
     final String TAG = "MobileID Companion";
 
     //sharedpreference string
-    Context context;
     private static final String PROPERTY_QRCODE = "QRCode";
     private static final String PROPERTY_SIGNATURE = "Signature";
 
