@@ -4,43 +4,50 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.support.v7.app.ActionBarActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
-
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class MainActivity extends Activity implements OnClickListener {
 
     final String TAG = "MobileID Companion";
+    Context context;
+    String userid;
 
     //sharedpreference string
-    private static final String PROPERTY_QRCODE = "QRCode";
-    private static final String PROPERTY_SIGNATURE = "Signature";
+    private static final String PROPERTY_GCMID = "GCMID";
+    private static final String PROPERTY_IDNUMBER = "UserIdNumber";
 
-    Button LaunchReg;
+    //GCM Property
+    GoogleCloudMessaging gcm;
+    String regid;
+    final String PROJECT_NUMBER = "139518708260";
+
+    TextView GCMTitle, GCMTv;
+    Button LaunchReg, UserClearBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //button to launch Register Activity
+        context = getApplicationContext();
+
         LaunchReg = (Button) findViewById(R.id.LaunchReg);
         LaunchReg.setOnClickListener(this);
+        UserClearBtn = (Button) findViewById(R.id.UserClearBtn);
+        UserClearBtn.setOnClickListener(this);
+
+        GCMTitle = (TextView) findViewById(R.id.GCMTitle);
+        GCMTv = (TextView) findViewById(R.id.GCMTv);
     }
 
     @Override
@@ -50,6 +57,9 @@ public class MainActivity extends Activity implements OnClickListener {
             case R.id.LaunchReg:
                 Intent i = new Intent(MainActivity.this, RegisterActivity.class);
                 startActivity(i);
+                break;
+            case R.id.UserClearBtn:
+                RegisterGCM();
                 break;
         }
     }
@@ -65,77 +75,31 @@ public class MainActivity extends Activity implements OnClickListener {
                 Context.MODE_PRIVATE);
     }
 
-    private void deleteSignature(Context context) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.remove(PROPERTY_SIGNATURE);
-        editor.commit();
-        Log.i(TAG, "Signature deleted");
-    }
+    public void RegisterGCM(){
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                String msg = "";
+                try {
+                    if (gcm == null) {
+                        gcm = GoogleCloudMessaging.getInstance(context);
+                    }
+                    regid = gcm.register(PROJECT_NUMBER);
+                    msg = "Device registered, registration ID=" + regid;
+                    Log.i("GCM", msg);
+                } catch (IOException ex) {
+                    msg = "Error :" + ex.getMessage();
 
-    private void deleteQRContent(Context context) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.remove(PROPERTY_QRCODE);
-        editor.commit();
-        Log.i(TAG, "QR Content deleted");
-    }
+                }
+                return msg;
+            }
 
-    private void storeSignature(Context context, String signature) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_SIGNATURE, signature);
-        editor.commit();
-        Log.i(TAG, "Storing Signature");
-    }
-
-    private void storeQRContent(Context context, String content) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_QRCODE, content);
-        editor.commit();
-        Log.i(TAG, "Storing QR Content");
-    }
-
-    private String getSignature(Context context) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        String Signature = prefs.getString(PROPERTY_SIGNATURE, "");
-        if (Signature.isEmpty()) {
-            Log.i(TAG, "There's no Signature in preferences");
-            return null;
-        }
-        return Signature;
-    }
-
-    private String getQRContent(Context context) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        String Content = prefs.getString(PROPERTY_QRCODE, "");
-        if (Content.isEmpty()) {
-            Log.i(TAG, "There's no QRCode content in preferences");
-            return null;
-        }
-        return Content;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+            @Override
+            protected void onPostExecute(String msg) {
+                GCMTitle.setVisibility(View.VISIBLE);
+                GCMTv.setVisibility(View.VISIBLE);
+                GCMTv.setText(regid);
+            }
+        }.execute(null, null, null);
     }
 }
