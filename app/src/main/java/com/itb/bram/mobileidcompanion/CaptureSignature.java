@@ -130,7 +130,6 @@ public class CaptureSignature extends Activity {
             setResult(1, intent);
             bs.flush();
             bs.close();
-
             finish();
         }
 
