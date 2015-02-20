@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -26,6 +27,8 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class RegisterActivity extends ActionBarActivity implements View.OnClickListener {
@@ -35,9 +38,10 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
 
     //sharedpreference string
     private static final String PROPERTY_GCMID = "GCMID";
+    private static final String PROPERTY_IDNUMBER = "UserIdNumber";
 
     //Registration variable
-    String RegCheckAddr, RegConfirmAddr, regcode;
+    String RegCheckAddr, RegConfirmAddr, RegCode, userinfo, idnumber;
     StringBuilder ReqURL = new StringBuilder();
 
     EditText PIN1;
@@ -83,13 +87,13 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
         super.onResume();
         if (QRContentText != null) {
             new AsyncTask<String, Integer, String>(){
-                String data;
+
                 @Override
                 protected String doInBackground(String... params) {
                     ReqURL.setLength(0);
                     ReqURL.append(RegCheckAddr);
                     ReqURL.append("?regcode=");
-                    ReqURL.append(regcode);
+                    ReqURL.append(RegCode);
                     Log.i(TAG, "Ask User Info to "+ReqURL);
 
                     OkHttpClient client = new OkHttpClient();
@@ -99,21 +103,21 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
                     Response response;
                     try {
                         response = client.newCall(request).execute();
-                        data = response.body().string();
+                        userinfo = response.body().string();
                     } catch (IOException e) {
-                        data = null;
+                        userinfo = null;
                     }
-                    return data;
+                    return userinfo;
                 }
 
                 @Override
                 protected void onPostExecute(String result) {
                     super.onPostExecute(result);
-                    Log.i(TAG, "Receive HTTP data " + data);
+                    Log.i(TAG, "Receive HTTP data " + userinfo);
                     //update user interface
                     subSum.setText("Review and Submit Data");
 
-                    ReviewTv.setText(data);
+                    ReviewTv.setText(userinfo);
                     ReviewTv.setVisibility(View.VISIBLE);
                     SubmitRegBtn.setVisibility(View.VISIBLE);
                 }
@@ -145,6 +149,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
                 //construct as json
                 JSONObject RegistrationInfo = new JSONObject();
                 try {
+                    RegistrationInfo.put("RegCode", RegCode);
                     RegistrationInfo.put("GCMAddress", getGCM(context));
                     RegistrationInfo.put("PIN", PIN1.getText().toString());
                     RegistrationInfo.put("Signature", encodedImage);
@@ -153,13 +158,8 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
                     e.printStackTrace();
                 }
                 //construct confirm URL
-                RegConfirmAddr = "http://postcatcher.in/catchers/54e69183c4f07b030000061b";
-                ReqURL.setLength(0);
-                ReqURL.append(RegConfirmAddr);
-                //ReqURL.append("?regcode=");
-                //ReqURL.append(regcode);
-                Log.i(TAG, "Confirm Registration to "+ReqURL);
-                SendRegistrationData(RegistrationInfo, ReqURL.toString());
+                Log.i(TAG, "Confirm Registration to "+RegConfirmAddr);
+                SendRegistrationData(RegistrationInfo, RegConfirmAddr);
                 break;
         }
     }
@@ -191,7 +191,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
                         JSONObject mainObject = new JSONObject(QRContentText);
                         RegCheckAddr = mainObject.getString("RegCheckAddr");
                         RegConfirmAddr = mainObject.getString("RegConfirmAddr");
-                        regcode = mainObject.getString("regcode");
+                        RegCode = mainObject.getString("RegCode");
                     } catch (JSONException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -231,6 +231,19 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
             }
             @Override
             protected void onPostExecute(String result) {
+                try {
+                    String datatosave = ReviewTv.getText().toString();
+                    JSONObject mainObject = new JSONObject(datatosave);
+                    idnumber = mainObject.getString("nik");
+                    storeIDNumber(context,idnumber);
+                    saveUserInfo(datatosave);
+                    finish();
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    result = "problem with saving user info";
+                }
+
                 int duration = Toast.LENGTH_SHORT;
                 Toast toast = Toast.makeText(context, result, duration);
                 toast.show();
@@ -244,6 +257,26 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
         // how you store the regID in your app is up to you.
         return getSharedPreferences(MainActivity.class.getSimpleName(),
                 Context.MODE_PRIVATE);
+    }
+
+    private void storeIDNumber(Context context, String idnumber) {
+        final SharedPreferences prefs = getAppPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PROPERTY_IDNUMBER, idnumber);
+        editor.commit();
+        Log.i(TAG, "Storing ID Number");
+    }
+
+    private void saveUserInfo(String string) {
+        String filename = "mobileid-userinfo.json";
+        FileOperations fop = new FileOperations();
+        fop.write(filename, string);
+        if(fop.write(filename, string)){
+            Toast.makeText(getApplicationContext(), filename+".txt created", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(getApplicationContext(), "I/O error", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private String getGCM(Context context) {

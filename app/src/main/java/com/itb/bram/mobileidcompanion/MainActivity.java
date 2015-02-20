@@ -32,7 +32,7 @@ public class MainActivity extends Activity implements OnClickListener {
     String regid;
     final String PROJECT_NUMBER = "139518708260";
 
-    TextView GCMTitle, GCMTv;
+    TextView GCMTv,UserInfo;
     Button LaunchReg, UserClearBtn;
 
     @Override
@@ -47,8 +47,8 @@ public class MainActivity extends Activity implements OnClickListener {
         UserClearBtn = (Button) findViewById(R.id.UserClearBtn);
         UserClearBtn.setOnClickListener(this);
 
-        GCMTitle = (TextView) findViewById(R.id.GCMTitle);
         GCMTv = (TextView) findViewById(R.id.GCMTv);
+        UserInfo = (TextView) findViewById(R.id.UserInfo);
 
         //check gcm
         regid = getGCM(context);
@@ -56,6 +56,12 @@ public class MainActivity extends Activity implements OnClickListener {
             GCMTv.setText(regid);
         } else {
             RegisterGCM();
+        }
+
+        //check if user already registered
+        userid = getIDNumber(context);
+        if (userid != null) {
+            UserInfo.setText("NIK = "+userid);
         }
     }
 
