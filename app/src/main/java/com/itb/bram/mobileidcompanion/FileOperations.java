@@ -40,7 +40,7 @@ public class FileOperations {
         String response = null;
         try {
             StringBuffer output = new StringBuffer();
-            String fpath = "/sdcard/"+fname+".txt";
+            String fpath = "/sdcard/MobileID Companion/"+fname;
             br = new BufferedReader(new FileReader(fpath));
             String line = "";
             while ((line = br.readLine()) != null) {

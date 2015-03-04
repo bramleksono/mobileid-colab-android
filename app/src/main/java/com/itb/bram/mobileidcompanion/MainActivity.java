@@ -1,7 +1,9 @@
 package com.itb.bram.mobileidcompanion;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -10,10 +12,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.view.View.OnClickListener;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -22,6 +29,7 @@ public class MainActivity extends Activity implements OnClickListener {
     final String TAG = "MobileID Companion";
     Context context;
     String userid;
+    JSONObject gcmObj;
 
     //sharedpreference string
     private static final String PROPERTY_GCMID = "GCMID";
@@ -49,6 +57,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
         GCMTv = (TextView) findViewById(R.id.GCMTv);
         UserInfo = (TextView) findViewById(R.id.UserInfo);
+        UserInfo.setOnClickListener(this);
 
         //check gcm
         regid = getGCM(context);
@@ -74,7 +83,87 @@ public class MainActivity extends Activity implements OnClickListener {
                 break;
             case R.id.UserClearBtn:
                 deleteGCM(context);
+                deleteIDNumber(context);
                 break;
+            case R.id.UserInfo:
+                new AlertDialog.Builder(this)
+                        .setTitle("Reading User Info")
+                        .setMessage(readUserInfo())
+                        .show();
+                break;
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        Bundle extras = intent.getExtras();
+
+        if (extras != null) {
+            parseExtras(extras);
+            confirmationDialog();
+        }
+    }
+
+    private String readUserInfo() {
+        String filename = "mobileid-userinfo.json";
+        FileOperations fop = new FileOperations();
+        String content = fop.read(filename);
+        if(content.isEmpty()){
+            return null;
+        }
+        Log.i(TAG,"File content: "+content);
+        return content;
+    }
+
+    private void confirmationDialog(){
+        final EditText input = new EditText(MainActivity.this);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+
+        try {
+            String messagetype = gcmObj.getString("info");
+            if(messagetype.compareTo("notification") == 0){
+                //hanya tampilkan pesan berita
+                final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Notification")
+                        .setMessage(gcmObj.getString("content"))
+                        .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
+                        .create();
+
+                d.setOnShowListener(new DialogInterface.OnShowListener() {
+
+                    @Override
+                    public void onShow(DialogInterface dialog) {
+
+                        Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
+                        b.setOnClickListener(new View.OnClickListener() {
+
+                            @Override
+                            public void onClick(View view) {
+                                d.dismiss();
+                                Log.i(TAG,"OK Clicked!");
+                            }
+                        });
+                    }
+                });
+                d.show();
+            }
+        } catch (JSONException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
+
+    private void parseExtras(Bundle extras){
+        String gcmMessage = extras.getString("gcmMsg");
+        Log.i(TAG,"Receive extras "+gcmMessage);
+        try {
+            gcmObj = new JSONObject(gcmMessage);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -111,14 +200,6 @@ public class MainActivity extends Activity implements OnClickListener {
         editor.putString(PROPERTY_GCMID, gcmid);
         editor.commit();
         Log.i(TAG, "Storing GCM ID");
-    }
-
-    private void storeIDNumber(Context context, String idnumber) {
-        final SharedPreferences prefs = getAppPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_IDNUMBER, idnumber);
-        editor.commit();
-        Log.i(TAG, "Storing ID Number");
     }
 
     private String getGCM(Context context) {

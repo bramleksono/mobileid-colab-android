@@ -272,7 +272,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
         FileOperations fop = new FileOperations();
         fop.write(filename, string);
         if(fop.write(filename, string)){
-            Toast.makeText(getApplicationContext(), filename+".txt created", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), filename+" created", Toast.LENGTH_SHORT).show();
         }else{
             Toast.makeText(getApplicationContext(), "I/O error", Toast.LENGTH_SHORT).show();
         }
