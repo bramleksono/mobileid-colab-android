@@ -160,6 +160,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
                 //construct confirm URL
                 Log.i(TAG, "Confirm Registration to "+RegConfirmAddr);
                 SendRegistrationData(RegistrationInfo, RegConfirmAddr);
+                SubmitRegBtn.setEnabled(false);
                 break;
         }
     }
@@ -204,7 +205,7 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
         }
     }
 
-    public void SendRegistrationData(final JSONObject RegistrationInfo, final String url){
+    private void SendRegistrationData(final JSONObject RegistrationInfo, final String url){
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... params) {
@@ -236,14 +237,15 @@ public class RegisterActivity extends ActionBarActivity implements View.OnClickL
                     JSONObject mainObject = new JSONObject(datatosave);
                     idnumber = mainObject.getString("nik");
                     storeIDNumber(context,idnumber);
-                    saveUserInfo(datatosave);
+                    userinfo = userinfo.replaceAll("[\\p{Cc}\\p{Cf}\\p{Co}\\p{Cn}]", "");
+                    saveUserInfo(userinfo);
                     finish();
                 } catch (JSONException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                     result = "problem with saving user info";
                 }
-
+                SubmitRegBtn.setEnabled(true);
                 int duration = Toast.LENGTH_SHORT;
                 Toast toast = Toast.makeText(context, result, duration);
                 toast.show();

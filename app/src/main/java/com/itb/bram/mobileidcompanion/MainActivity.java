@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,18 +19,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 public class MainActivity extends Activity implements OnClickListener {
 
     final String TAG = "MobileID Companion";
     Context context;
     String userid;
-    JSONObject gcmObj;
+    JSONObject gcmObj, form;
 
     //sharedpreference string
     private static final String PROPERTY_GCMID = "GCMID";
@@ -86,10 +98,34 @@ public class MainActivity extends Activity implements OnClickListener {
                 deleteIDNumber(context);
                 break;
             case R.id.UserInfo:
-                new AlertDialog.Builder(this)
-                        .setTitle("Reading User Info")
-                        .setMessage(readUserInfo())
-                        .show();
+                String userinfo = readUserInfo();
+                userinfo = userinfo.replace(" ", "");
+                userinfo = userinfo.replace("\n","").replace("\r", "");
+                //String forHashCalc = userinfo.replace("/", "\\/");
+                try {
+                    String hash = Converter.sha256Hash(userinfo);
+                    //String hash = "5e6ca2a48ca5002352176c9b6b14b5ee364abac05bf8c760760cabbb5bbf259e";
+                    String result = Converter.sha256Hmac("a4cd374e", hash);
+                    new AlertDialog.Builder(this)
+                            .setTitle("Reading User Info")
+                            .setMessage("text:"+userinfo+" hash:"+hash)
+                            .show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                /*
+                try {
+                    form = new JSONObject(forHashCalc);
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                //construct confirm URL
+                String userinfourl = "http://postcatcher.in/catchers/54f6896ec8958803000005f2";
+                Log.i(TAG, "Sending user information "+userinfo);
+                SendResponse(form, userinfourl);
+                */
                 break;
         }
     }
@@ -256,4 +292,39 @@ public class MainActivity extends Activity implements OnClickListener {
             }
         }.execute(null, null, null);
     }
+
+    private void SendResponse(final JSONObject Form, final String url){
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                String textresponse;
+                MediaType JSON
+                        = MediaType.parse("application/json; charset=utf-8");
+
+                OkHttpClient client = new OkHttpClient();
+
+                RequestBody body = RequestBody.create(JSON, Form.toString());
+
+                Request request = new Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .build();
+                Response response;
+                try {
+                    response = client.newCall(request).execute();
+                    textresponse = response.body().string();
+                } catch (IOException e) {
+                    textresponse = null;
+                }
+                return textresponse;
+            }
+            @Override
+            protected void onPostExecute(String result) {
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, result, duration);
+                toast.show();
+            }
+        }.execute(null, null, null);
+    }
+
 }
