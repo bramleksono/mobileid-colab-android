@@ -74,30 +74,12 @@ public class GcmIntentService extends IntentService {
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, passIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 
-            if(msg.compareToIgnoreCase("websign") == 0){
-//				NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                mBuilder
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("Web Sign - "+gcmObj.getString("title"))
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
-                        .setContentText(gcmObj.getString("content"));
-
-            } else if(msg.compareToIgnoreCase("docsign") == 0){
-//				NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                mBuilder
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("Doc Sign - "+gcmObj.getString("title"))
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
-                        .setContentText(gcmObj.getString("content"));
-
-            } else {
-//		        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                mBuilder
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("mobileID")
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
-                        .setContentText(msg);
-            }
+//		    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+            mBuilder
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setContentTitle(getResources().getString(R.string.app_name))
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
+                    .setContentText(msg);
 
             //default notification sound
             Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

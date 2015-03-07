@@ -40,7 +40,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
     final String TAG = "MobileID Companion";
     Context context;
-    String userid;
+    String userid,userinfo,userhash;
     JSONObject gcmObj, form;
 
     //sharedpreference string
@@ -83,7 +83,14 @@ public class MainActivity extends Activity implements OnClickListener {
         userid = getIDNumber(context);
         if (userid != null) {
             UserInfo.setText("NIK = "+userid);
+            //process userinfo from storage
+            userinfo = readUserInfo();
+            userinfo = userinfo.replace(" ", "");
+            userinfo = userinfo.replace("\n","").replace("\r", "");
+            userhash = Converter.sha256Hash(userinfo);
         }
+
+
     }
 
     @Override
@@ -98,22 +105,10 @@ public class MainActivity extends Activity implements OnClickListener {
                 deleteIDNumber(context);
                 break;
             case R.id.UserInfo:
-                String userinfo = readUserInfo();
-                userinfo = userinfo.replace(" ", "");
-                userinfo = userinfo.replace("\n","").replace("\r", "");
-                //String forHashCalc = userinfo.replace("/", "\\/");
-                try {
-                    String hash = Converter.sha256Hash(userinfo);
-                    //String hash = "5e6ca2a48ca5002352176c9b6b14b5ee364abac05bf8c760760cabbb5bbf259e";
-                    String result = Converter.sha256Hmac("a4cd374e", hash);
-                    new AlertDialog.Builder(this)
+                new AlertDialog.Builder(this)
                             .setTitle("Reading User Info")
-                            .setMessage("text:"+userinfo+" hash:"+hash)
+                            .setMessage("text:"+userinfo+" hash:"+userhash)
                             .show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
                 /*
                 try {
                     form = new JSONObject(forHashCalc);
@@ -158,38 +153,97 @@ public class MainActivity extends Activity implements OnClickListener {
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         input.setLayoutParams(lp);
+        String messagetype =""
+               ,content = "";
 
         try {
-            String messagetype = gcmObj.getString("info");
-            if(messagetype.compareTo("notification") == 0){
-                //hanya tampilkan pesan berita
-                final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Notification")
-                        .setMessage(gcmObj.getString("content"))
-                        .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
-                        .create();
-
-                d.setOnShowListener(new DialogInterface.OnShowListener() {
-
-                    @Override
-                    public void onShow(DialogInterface dialog) {
-
-                        Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
-                        b.setOnClickListener(new View.OnClickListener() {
-
-                            @Override
-                            public void onClick(View view) {
-                                d.dismiss();
-                                Log.i(TAG,"OK Clicked!");
-                            }
-                        });
-                    }
-                });
-                d.show();
-            }
+            messagetype = gcmObj.getString("info");
+            content = gcmObj.getString("content");
         } catch (JSONException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
+        }
+        Log.i(TAG,"info: "+ messagetype);
+        if(messagetype.compareTo("notification") == 0) {
+            //only show simple alert
+            final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Notification")
+                    .setMessage(content)
+                    .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
+                    .create();
+            d.setOnShowListener(new DialogInterface.OnShowListener() {
+
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
+                    b.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View view) {
+                            d.dismiss();
+                            Log.i(TAG,"OK Clicked!");
+                        }
+                    });
+                }
+            });
+            d.show();
+        } else {
+            //create alert with input box and data sending
+            final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
+                    .setView(input)
+                    .setTitle("Enter PIN")
+                    .setMessage(content)
+                    .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create();
+
+            final String finalMessagetype = messagetype;
+            d.setOnShowListener(new DialogInterface.OnShowListener() {
+
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
+                    b.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View view) {
+                            String passphrase="",userhmac="",OTP="",SIaddress="",PID="";
+                            passphrase = input.getText().toString();
+
+                            JSONObject MessagetoSI = new JSONObject();
+
+                            try {
+                                OTP = gcmObj.getString("OTP");
+                                SIaddress = gcmObj.getString("SIaddress");
+                                PID = gcmObj.getString("PID");
+                            } catch (JSONException e1) {
+                                // TODO Auto-generated catch block
+                                e1.printStackTrace();
+                            }
+
+                            switch (finalMessagetype) {
+                                case "login":
+                                    Log.i(TAG,"Begin Login Procedure");
+                                    //generate hmac
+                                    try {
+                                        userhmac = Converter.sha256Hmac(OTP, userhash);
+                                        MessagetoSI.put("HMAC", userhmac);
+                                        MessagetoSI.put("PID", PID);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    break;
+                            }
+                            //sending message
+                            Log.i(TAG, "Confirm Registration to "+SIaddress);
+                            SendResponse(MessagetoSI, SIaddress);
+                            d.dismiss();
+                            Log.i(TAG,"OK Clicked!");
+                        }
+                    });
+                }
+            });
+            d.show();
         }
     }
 
@@ -326,5 +380,4 @@ public class MainActivity extends Activity implements OnClickListener {
             }
         }.execute(null, null, null);
     }
-
 }
