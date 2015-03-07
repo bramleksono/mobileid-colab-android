@@ -109,18 +109,6 @@ public class MainActivity extends Activity implements OnClickListener {
                             .setTitle("Reading User Info")
                             .setMessage("text:"+userinfo+" hash:"+userhash)
                             .show();
-                /*
-                try {
-                    form = new JSONObject(forHashCalc);
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                //construct confirm URL
-                String userinfourl = "http://postcatcher.in/catchers/54f6896ec8958803000005f2";
-                Log.i(TAG, "Sending user information "+userinfo);
-                SendResponse(form, userinfourl);
-                */
                 break;
         }
     }
@@ -207,7 +195,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
                         @Override
                         public void onClick(View view) {
-                            String passphrase="",userhmac="",OTP="",SIaddress="",PID="";
+                            String passphrase="",hmac="",OTP="",SIaddress="",PID="", hash="";
                             passphrase = input.getText().toString();
 
                             JSONObject MessagetoSI = new JSONObject();
@@ -221,18 +209,30 @@ public class MainActivity extends Activity implements OnClickListener {
                                 e1.printStackTrace();
                             }
 
-                            switch (finalMessagetype) {
-                                case "login":
-                                    Log.i(TAG,"Begin Login Procedure");
-                                    //generate hmac
-                                    try {
-                                        userhmac = Converter.sha256Hmac(OTP, userhash);
-                                        MessagetoSI.put("HMAC", userhmac);
-                                        MessagetoSI.put("PID", PID);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    break;
+                            if ((finalMessagetype.compareTo("login") == 0) || (finalMessagetype.compareTo("verification") == 0)) {
+                                //for login and verification
+                                Log.i(TAG,"Begin Login Procedure");
+                                //generate hmac
+                                try {
+                                    hmac = Converter.sha256Hmac(OTP, userhash);
+                                    MessagetoSI.put("HMAC", hmac);
+                                    MessagetoSI.put("PID", PID);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                //for datasign and docsign
+                                Log.i(TAG,"Begin Signing Procedure");
+                                //get hash and generate hmac
+                                try {
+                                    hash = gcmObj.getString("hash");
+                                    hmac = Converter.sha256Hmac(OTP, hash);
+                                    MessagetoSI.put("HMAC", hmac);
+                                    MessagetoSI.put("PID", PID);
+                                    MessagetoSI.put("Passphrase", passphrase);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                             //sending message
                             Log.i(TAG, "Confirm Registration to "+SIaddress);
