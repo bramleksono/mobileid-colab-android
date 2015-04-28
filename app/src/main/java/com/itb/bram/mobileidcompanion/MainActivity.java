@@ -175,17 +175,69 @@ public class MainActivity extends Activity implements OnClickListener {
                 }
             });
             d.show();
-        } else {
+        } else if((messagetype.compareTo("login") == 0) || (messagetype.compareTo("verification") == 0)) {
+            messagetype = messagetype.substring(0,1).toUpperCase() + messagetype.substring(1);
+            //show message and ok, close button
+            final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(messagetype)
+                    .setMessage(content)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
+                    .create();
+
+            d.setOnShowListener(new DialogInterface.OnShowListener() {
+
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
+                    b.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View view) {
+                            String hmac = "", OTP = "", SIaddress = "", PID = "", hash = "";
+
+                            JSONObject MessagetoSI = new JSONObject();
+
+                            try {
+                                OTP = gcmObj.getString("OTP");
+                                SIaddress = gcmObj.getString("SIaddress");
+                                PID = gcmObj.getString("PID");
+                            } catch (JSONException e1) {
+                                // TODO Auto-generated catch block
+                                e1.printStackTrace();
+                            }
+
+                            Log.i(TAG, "Begin Login Procedure");
+                            //generate hmac
+                            try {
+                                hmac = Converter.sha256Hmac(OTP, userhash);
+                                MessagetoSI.put("HMAC", hmac);
+                                MessagetoSI.put("PID", PID);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            //sending message
+                            Log.i(TAG, "Confirm Registration to " + SIaddress);
+                            SendResponse(MessagetoSI, SIaddress);
+                            d.dismiss();
+                            Log.i(TAG, "OK Clicked!");
+                        }
+                    });
+                }
+            });
+            d.show();
+        }
+        else {
             //create alert with input box and data sending
             final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
                     .setView(input)
                     .setTitle("Enter PIN")
                     .setMessage(content)
-                    .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
                     .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
                     .create();
 
-            final String finalMessagetype = messagetype;
             d.setOnShowListener(new DialogInterface.OnShowListener() {
 
                 @Override
@@ -209,31 +261,18 @@ public class MainActivity extends Activity implements OnClickListener {
                                 e1.printStackTrace();
                             }
 
-                            if ((finalMessagetype.compareTo("login") == 0) || (finalMessagetype.compareTo("verification") == 0)) {
-                                //for login and verification
-                                Log.i(TAG,"Begin Login Procedure");
-                                //generate hmac
-                                try {
-                                    hmac = Converter.sha256Hmac(OTP, userhash);
-                                    MessagetoSI.put("HMAC", hmac);
-                                    MessagetoSI.put("PID", PID);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                //for datasign and docsign
-                                Log.i(TAG,"Begin Signing Procedure");
-                                //get hash and generate hmac
-                                try {
-                                    hash = gcmObj.getString("hash");
-                                    hmac = Converter.sha256Hmac(OTP, hash);
-                                    MessagetoSI.put("HMAC", hmac);
-                                    MessagetoSI.put("PID", PID);
-                                    MessagetoSI.put("Passphrase", passphrase);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                            Log.i(TAG,"Begin Signing Procedure");
+                            //get hash and generate hmac
+                            try {
+                                hash = gcmObj.getString("hash");
+                                hmac = Converter.sha256Hmac(OTP, hash);
+                                MessagetoSI.put("HMAC", hmac);
+                                MessagetoSI.put("PID", PID);
+                                MessagetoSI.put("Passphrase", passphrase);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
+
                             //sending message
                             Log.i(TAG, "Confirm Registration to "+SIaddress);
                             SendResponse(MessagetoSI, SIaddress);
@@ -374,6 +413,7 @@ public class MainActivity extends Activity implements OnClickListener {
             }
             @Override
             protected void onPostExecute(String result) {
+                Log.i(TAG, "Received Response "+result);
                 int duration = Toast.LENGTH_SHORT;
                 Toast toast = Toast.makeText(context, result, duration);
                 toast.show();
