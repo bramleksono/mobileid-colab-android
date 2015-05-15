@@ -8,11 +8,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,19 +28,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import static android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD;
 
 public class MainActivity extends Activity implements OnClickListener {
 
     final String TAG = "MobileID Companion";
     Context context;
-    String userid,userinfo,userhash;
-    JSONObject gcmObj, form;
+    String userid, userinfo, parseduserinfo, userhash;
+    JSONObject gcmObj;
 
     //sharedpreference string
     private static final String PROPERTY_GCMID = "GCMID";
@@ -78,6 +73,12 @@ public class MainActivity extends Activity implements OnClickListener {
         } else {
             RegisterGCM();
         }
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
 
         //check if user already registered
         userid = getIDNumber(context);
@@ -85,12 +86,13 @@ public class MainActivity extends Activity implements OnClickListener {
             UserInfo.setText("NIK = "+userid);
             //process userinfo from storage
             userinfo = readUserInfo();
+            //parse json to string
+            parseduserinfo = parseIdentity(userinfo);
+            //clean text before calculate hash
             userinfo = userinfo.replace(" ", "");
             userinfo = userinfo.replace("\n","").replace("\r", "");
             userhash = Converter.sha256Hash(userinfo);
         }
-
-
     }
 
     @Override
@@ -107,7 +109,7 @@ public class MainActivity extends Activity implements OnClickListener {
             case R.id.UserInfo:
                 new AlertDialog.Builder(this)
                             .setTitle("Reading User Info")
-                            .setMessage("text:"+userinfo+" hash:"+userhash)
+                            .setMessage("Detail:\n"+parseduserinfo+"\n Hash:\n"+userhash)
                             .show();
                 break;
         }
@@ -131,13 +133,46 @@ public class MainActivity extends Activity implements OnClickListener {
         String content = fop.read(filename);
         if(content.isEmpty()){
             return null;
+        } else {
+            Log.i(TAG, "File content: " + content);
+            return content;
         }
-        Log.i(TAG,"File content: "+content);
+    }
+
+    private String parseIdentity(String content) {
+        JSONObject ktpObj;
+        if(content.isEmpty()){
+            return null;
+        } else {
+            try {
+                ktpObj = new JSONObject(content);
+                //parse user info to text
+                String ktpString = "NIK: " + ktpObj.getString("nik") + "\n";
+                ktpString = ktpString.concat("Nama: " + ktpObj.getString("nama") + "\n");
+                ktpString = ktpString.concat("Tempat/Tgl Lahir: " + ktpObj.getString("ttl") + "\n");
+                ktpString = ktpString.concat("Jenis Kelamin: " + ktpObj.getString("jeniskelamin") + "\n");
+                ktpString = ktpString.concat("Gol.Darah: " + ktpObj.getString("goldarah") + "\n");
+                ktpString = ktpString.concat("Alamat: " + ktpObj.getString("alamat") + "\n");
+                ktpString = ktpString.concat("RT/RW: " + ktpObj.getString("rtrw") + "\n");
+                ktpString = ktpString.concat("Kel/Desa: " + ktpObj.getString("keldesa") + "\n");
+                ktpString = ktpString.concat("Kecamatan: " + ktpObj.getString("kecamatan") + "\n");
+                ktpString = ktpString.concat("Agama: " + ktpObj.getString("agama") + "\n");
+                ktpString = ktpString.concat("Status Perkawinan: " + ktpObj.getString("statperkawinan") + "\n");
+                ktpString = ktpString.concat("Pekerjaan: " + ktpObj.getString("pekerjaan") + "\n");
+                ktpString = ktpString.concat("Kewarganegaraan: " + ktpObj.getString("kewarganegaraan") + "\n");
+                ktpString = ktpString.concat("Berlaku Hingga: " + ktpObj.getString("berlaku") + "\n");
+
+                content = ktpString;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
         return content;
     }
 
     private void confirmationDialog(){
         final EditText input = new EditText(MainActivity.this);
+        input.setInputType(TYPE_NUMBER_VARIATION_PASSWORD);
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         input.setLayoutParams(lp);

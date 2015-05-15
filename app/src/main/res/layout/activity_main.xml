@@ -47,13 +47,6 @@
             android:onClick="onClick"
             android:clickable="true"/>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Clear"
-            android:id="@+id/UserClearBtn"
-            android:layout_gravity="center_horizontal" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,6 +62,14 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Registering in background.."
             android:id="@+id/GCMTv"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_gravity="center_horizontal"
+            android:paddingBottom="20dp" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear Data"
+            android:id="@+id/UserClearBtn"
+            android:layout_gravity="center_horizontal" />
     </LinearLayout>
 </RelativeLayout>

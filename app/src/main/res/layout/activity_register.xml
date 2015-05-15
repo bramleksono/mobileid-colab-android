@@ -46,15 +46,6 @@
                 android:phoneNumber="false"
                 android:singleLine="true" />
 
-        <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberPassword"
-                android:ems="10"
-                android:maxLength="10"
-                android:id="@+id/PIN2Field"
-                android:hint="Re-enter your PIN"
-                android:singleLine="true" />
     </LinearLayout>
 
     <TextView

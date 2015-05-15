@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
@@ -18,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -28,8 +25,6 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class RegisterActivity extends Activity implements View.OnClickListener {
@@ -67,7 +62,6 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
 
         //step 1
         PIN1 = (EditText) findViewById(R.id.PIN1Field);
-        PIN2 = (EditText) findViewById(R.id.PIN2Field);
         //step 2
         signImage = (ImageView) findViewById(R.id.imageView);
         CaptureSig = (Button) findViewById(R.id.CreateSigBtn);
@@ -81,6 +75,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         SubmitRegBtn.setOnClickListener(this);
         subSum = (TextView) findViewById(R.id.subSum);
         ReviewTv = (TextView) findViewById(R.id.ReviewTv);
+
     }
 
     @Override
