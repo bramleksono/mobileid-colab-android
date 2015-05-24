@@ -20,6 +20,12 @@
             android:paddingBottom="20dp" />
 
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Application Guide:\n 1. Make sure you have working internet connection (Pastikan koneksi internet dalam kondisi baik). \n 2. To register, bring your KTP to our office (Untuk registrasi, bawa KTP ke kantor kami). \n 3. To check registered identity, click on KTP number text (Untuk memeriksa identitas terdaftar, tekan teks nomor KTP). \n 4. Incoming message shown in popup. Respond by choosing OK or CANCEL, and enter your PIN if asked (Pesan akan ditampilkan dalam popup. Balas dengan menekan OK atau CANCEL, dan masukkan PIN bila diminta)."
+            android:id="@+id/Guide"
+            android:layout_gravity="center_horizontal" />
 
         <Button
             android:layout_width="wrap_content"
@@ -72,4 +78,5 @@
             android:id="@+id/UserClearBtn"
             android:layout_gravity="center_horizontal" />
     </LinearLayout>
+
 </RelativeLayout>
