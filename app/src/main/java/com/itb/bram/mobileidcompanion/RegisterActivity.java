@@ -97,49 +97,59 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
                             .url(ReqURL.toString())
                             .build();
                     Response response;
+
                     try {
                         response = client.newCall(request).execute();
                         userinfo = response.body().string();
                     } catch (IOException e) {
-                        userinfo = null;
+                        return null;
                     }
+
                     return userinfo;
                 }
 
                 @Override
                 protected void onPostExecute(String result) {
                     super.onPostExecute(result);
-                    Log.i(TAG, "Receive HTTP data " + userinfo);
-                    //update user interface
-                    subSum.setText("Review and Submit Data");
 
-                    JSONObject ktpObj;
                     String ktpString;
-                    try {
-                        ktpObj = new JSONObject(userinfo);
-                        //parse user info to text
-                        ktpString = "NIK: " + ktpObj.getString("nik") + "\n";
-                        ktpString = ktpString.concat("Nama: " + ktpObj.getString("nama") + "\n");
-                        ktpString = ktpString.concat("Tempat/Tgl Lahir: " + ktpObj.getString("ttl") + "\n");
-                        ktpString = ktpString.concat("Jenis Kelamin: " + ktpObj.getString("jeniskelamin") + "\n");
-                        ktpString = ktpString.concat("Gol.Darah: " + ktpObj.getString("goldarah") + "\n");
-                        ktpString = ktpString.concat("Alamat: " + ktpObj.getString("alamat") + "\n");
-                        ktpString = ktpString.concat("RT/RW: " + ktpObj.getString("rtrw") + "\n");
-                        ktpString = ktpString.concat("Kel/Desa: " + ktpObj.getString("keldesa") + "\n");
-                        ktpString = ktpString.concat("Kecamatan: " + ktpObj.getString("kecamatan") + "\n");
-                        ktpString = ktpString.concat("Agama: " + ktpObj.getString("agama") + "\n");
-                        ktpString = ktpString.concat("Status Perkawinan: " + ktpObj.getString("statperkawinan") + "\n");
-                        ktpString = ktpString.concat("Pekerjaan: " + ktpObj.getString("pekerjaan") + "\n");
-                        ktpString = ktpString.concat("Kewarganegaraan: " + ktpObj.getString("kewarganegaraan") + "\n");
-                        ktpString = ktpString.concat("Berlaku Hingga: " + ktpObj.getString("berlaku") + "\n");
+                    if (result != null) {
+                        //process userinfo
+                        Log.i(TAG, "Receive HTTP data " + userinfo);
+                        //update user interface
+                        subSum.setText("Review and Submit Data");
 
-                        ReviewTv.setText(ktpString);
-                        ReviewTv.setVisibility(View.VISIBLE);
-                        SubmitRegBtn.setVisibility(View.VISIBLE);
-                    } catch (JSONException e) {
-                        ktpString = "Cannot retrieved user info (Tidak dapat mengambil user info).";
+                        JSONObject ktpObj;
+                        try {
+                            ktpObj = new JSONObject(userinfo);
+                            //parse user info to text
+                            ktpString = "NIK: " + ktpObj.getString("nik") + "\n";
+                            ktpString = ktpString.concat("Nama: " + ktpObj.getString("nama") + "\n");
+                            ktpString = ktpString.concat("Tempat/Tgl Lahir: " + ktpObj.getString("ttl") + "\n");
+                            ktpString = ktpString.concat("Jenis Kelamin: " + ktpObj.getString("jeniskelamin") + "\n");
+                            ktpString = ktpString.concat("Gol.Darah: " + ktpObj.getString("goldarah") + "\n");
+                            ktpString = ktpString.concat("Alamat: " + ktpObj.getString("alamat") + "\n");
+                            ktpString = ktpString.concat("RT/RW: " + ktpObj.getString("rtrw") + "\n");
+                            ktpString = ktpString.concat("Kel/Desa: " + ktpObj.getString("keldesa") + "\n");
+                            ktpString = ktpString.concat("Kecamatan: " + ktpObj.getString("kecamatan") + "\n");
+                            ktpString = ktpString.concat("Agama: " + ktpObj.getString("agama") + "\n");
+                            ktpString = ktpString.concat("Status Perkawinan: " + ktpObj.getString("statperkawinan") + "\n");
+                            ktpString = ktpString.concat("Pekerjaan: " + ktpObj.getString("pekerjaan") + "\n");
+                            ktpString = ktpString.concat("Kewarganegaraan: " + ktpObj.getString("kewarganegaraan") + "\n");
+                            ktpString = ktpString.concat("Berlaku Hingga: " + ktpObj.getString("berlaku") + "\n");
+                            SubmitRegBtn.setVisibility(View.VISIBLE);
+                        } catch (JSONException e) {
+                            ktpString = "Error reading user info, repeat Scan QR Code (Kesalahan membaca user info, ulangi Scan QR Code).";
+                        }
+
+                    } else {
+                        //cannot connect to server
+                        Log.i(TAG, "Cannot connect to server.");
+                        ktpString = "Cannot retrieved user info, check your connection (Tidak dapat mengambil user info, periksa koneksi anda).";
                     }
 
+                    ReviewTv.setText(ktpString);
+                    ReviewTv.setVisibility(View.VISIBLE);
                 }
             }.execute();
         }
@@ -214,7 +224,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
                         RegCode = mainObject.getString("RegCode");
                     } catch (JSONException e) {
                         QRContentText = null;
-                        QRContentTv.setText("Try repeat QR code (Ulangi scan kode QR)");
+                        QRContentTv.setText("Try scan again (Ulangi proses scan)");
                     }
                 } else {
                     Log.i(TAG, "QR Code Not OK "+resultCode);
@@ -240,27 +250,33 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
                         .post(body)
                         .build();
                 Response response;
+
                 try {
                     response = client.newCall(request).execute();
                     textresponse = response.body().string();
                 } catch (IOException e) {
-                    textresponse = null;
+                    return null;
                 }
+
                 return textresponse;
             }
             @Override
             protected void onPostExecute(String result) {
-                try {
-                    JSONObject mainObject = new JSONObject(userinfo);
-                    idnumber = mainObject.getString("nik");
-                    storeIDNumber(context,idnumber);
-                    userinfo = userinfo.replaceAll("[\\p{Cc}\\p{Cf}\\p{Co}\\p{Cn}]", "");
-                    saveUserInfo(userinfo);
-                    finish();
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    result = "problem with saving user info";
+                if (result != null) {
+                    try {
+                        JSONObject mainObject = new JSONObject(userinfo);
+                        idnumber = mainObject.getString("nik");
+                        storeIDNumber(context,idnumber);
+                        userinfo = userinfo.replaceAll("[\\p{Cc}\\p{Cf}\\p{Co}\\p{Cn}]", "");
+                        saveUserInfo(userinfo);
+                        result = "User info saved";
+                        finish();
+                    } catch (JSONException e) {
+                        result = "Problem with saving user info";
+                    }
+
+                } else {
+                    result = "Problem with sending data, check your connection (Tidak dapat mengirim data, periksa koneksi anda).";
                 }
                 SubmitRegBtn.setEnabled(true);
                 int duration = Toast.LENGTH_SHORT;
@@ -295,7 +311,6 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         }else{
             Toast.makeText(getApplicationContext(), "I/O error", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     private String getGCM(Context context) {
