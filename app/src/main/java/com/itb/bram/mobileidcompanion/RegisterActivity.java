@@ -37,7 +37,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
     private static final String PROPERTY_IDNUMBER = "UserIdNumber";
 
     //Registration variable
-    String RegCheckAddr, RegConfirmAddr, RegCode, userinfo, idnumber;
+    String RegCheckAddr, RegConfirmAddr, RegCode, userinfo, idnumber, datatosave;
     StringBuilder ReqURL = new StringBuilder();
 
     EditText PIN1;
@@ -251,8 +251,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
             @Override
             protected void onPostExecute(String result) {
                 try {
-                    String datatosave = ReviewTv.getText().toString();
-                    JSONObject mainObject = new JSONObject(datatosave);
+                    JSONObject mainObject = new JSONObject(userinfo);
                     idnumber = mainObject.getString("nik");
                     storeIDNumber(context,idnumber);
                     userinfo = userinfo.replaceAll("[\\p{Cc}\\p{Cf}\\p{Co}\\p{Cn}]", "");

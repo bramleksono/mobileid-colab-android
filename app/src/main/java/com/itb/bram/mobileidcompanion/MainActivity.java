@@ -6,6 +6,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -83,15 +86,24 @@ public class MainActivity extends Activity implements OnClickListener {
         //check if user already registered
         userid = getIDNumber(context);
         if (userid != null) {
-            UserInfo.setText("NIK = "+userid);
             //process userinfo from storage
             userinfo = readUserInfo();
-            //parse json to string
-            parseduserinfo = parseIdentity(userinfo);
-            //clean text before calculate hash
-            userinfo = userinfo.replace(" ", "");
-            userinfo = userinfo.replace("\n","").replace("\r", "");
-            userhash = Converter.sha256Hash(userinfo);
+            if (userinfo != null) {
+                UserInfo.setText("NIK = "+userid);
+                //parse json to string
+                parseduserinfo = parseIdentity(userinfo);
+                //clean text before calculate hash
+                userinfo = userinfo.replace(" ", "");
+                userinfo = userinfo.replace("\n","").replace("\r", "");
+                userhash = Converter.sha256Hash(userinfo);
+            } else {
+                //must be registration fault. clear id number
+                deleteIDNumber(context);
+                int duration = Toast.LENGTH_LONG;
+                Toast toast = Toast.makeText(context, "Cannot read user info. Please repeat registration process.", duration);
+                toast.show();
+            }
+
         }
     }
 
@@ -131,11 +143,11 @@ public class MainActivity extends Activity implements OnClickListener {
         String filename = "mobileid-userinfo.json";
         FileOperations fop = new FileOperations();
         String content = fop.read(filename);
-        if(content.isEmpty()){
-            return null;
-        } else {
+        if(content != null && !content.isEmpty() ){
             Log.i(TAG, "File content: " + content);
             return content;
+        } else {
+            return null;
         }
     }
 
@@ -253,7 +265,8 @@ public class MainActivity extends Activity implements OnClickListener {
                             }
 
                             //sending message
-                            Log.i(TAG, "Confirm Registration to " + SIaddress);
+                            Log.i(TAG, "Confirm Login to " + SIaddress);
+                            Log.i(TAG, "Sending data " + MessagetoSI);
                             SendResponse(MessagetoSI, SIaddress);
                             d.dismiss();
                             Log.i(TAG, "OK Clicked!");
@@ -309,7 +322,8 @@ public class MainActivity extends Activity implements OnClickListener {
                             }
 
                             //sending message
-                            Log.i(TAG, "Confirm Registration to "+SIaddress);
+                            Log.i(TAG, "Confirm Signing to "+SIaddress);
+                            Log.i(TAG, "Sending data " + MessagetoSI);
                             SendResponse(MessagetoSI, SIaddress);
                             d.dismiss();
                             Log.i(TAG,"OK Clicked!");
@@ -448,8 +462,16 @@ public class MainActivity extends Activity implements OnClickListener {
             }
             @Override
             protected void onPostExecute(String result) {
-                Log.i(TAG, "Received Response "+result);
-                int duration = Toast.LENGTH_SHORT;
+                Log.i(TAG, "Received Response " + result);
+                //play sound
+                try {
+                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                    r.play();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                int duration = Toast.LENGTH_LONG;
                 Toast toast = Toast.makeText(context, result, duration);
                 toast.show();
             }

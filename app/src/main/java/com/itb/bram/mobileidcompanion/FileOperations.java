@@ -48,7 +48,7 @@ public class FileOperations {
             }
             response = output.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
         return response;

@@ -16,7 +16,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Registration Guide :  \n1. Make sure you have working internet connection (Pastikan koneksi internet dalam kondisi baik).  \n2. Show your KTP to officer (Serahkan KTP ke petugas).  \n3. After QR code shown, fill form in step 1 and 2, then push SCAN button (Setelah kode QR tampil, isi form pada step 1 dan 2).  \n4. Wait while information retrieved (Tunggu sementara informasi diambil).  \n5. Review your identity. If you are satisfied, click SUBMIT button (Periksa identitas. Jika data sudah benar, tekan tombol SUBMIT)."
+        android:text="Registration Guide :  \n1. Make sure you have working internet connection (Pastikan koneksi internet dalam kondisi baik).  \n2. Show your ID Card to officer (Serahkan KTP ke petugas).  \n3. After QR code shown, fill form in step 1 and 2, then push SCAN button (Setelah kode QR tampil, isi form pada step 1 dan 2).  \n4. Wait while information retrieved (Tunggu sementara informasi diambil).  \n5. Review your identity. If you are satisfied, click SUBMIT button (Periksa identitas. Jika data sudah benar, tekan tombol SUBMIT)."
         android:id="@+id/Guide"
         android:layout_gravity="center_horizontal" />
 
