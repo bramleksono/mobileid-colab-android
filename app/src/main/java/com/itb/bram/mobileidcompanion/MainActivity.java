@@ -44,6 +44,7 @@ public class MainActivity extends Activity implements OnClickListener {
     //sharedpreference string
     private static final String PROPERTY_GCMID = "GCMID";
     private static final String PROPERTY_IDNUMBER = "UserIdNumber";
+    private static final String PROPERTY_PIN = "UserPIN";
 
     //GCM Property
     GoogleCloudMessaging gcm;
@@ -117,6 +118,7 @@ public class MainActivity extends Activity implements OnClickListener {
             case R.id.UserClearBtn:
                 deleteGCM(context);
                 deleteIDNumber(context);
+                deletePIN(context);
                 break;
             case R.id.UserInfo:
                 new AlertDialog.Builder(this)
@@ -188,17 +190,19 @@ public class MainActivity extends Activity implements OnClickListener {
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         input.setLayoutParams(lp);
-        String messagetype =""
+        String info =""
                ,content = "";
 
         try {
-            messagetype = gcmObj.getString("info");
+            info = gcmObj.getString("info");
             content = gcmObj.getString("content");
         } catch (JSONException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-        Log.i(TAG,"info: "+ messagetype);
+        Log.i(TAG,"info: "+ info);
+
+        final String messagetype = info;
+
         if(messagetype.compareTo("notification") == 0) {
             //only show simple alert
             final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
@@ -222,61 +226,7 @@ public class MainActivity extends Activity implements OnClickListener {
                 }
             });
             d.show();
-        } else if((messagetype.compareTo("login") == 0) || (messagetype.compareTo("verification") == 0)) {
-            messagetype = messagetype.substring(0,1).toUpperCase() + messagetype.substring(1);
-            //show message and ok, close button
-            final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
-                    .setTitle(messagetype)
-                    .setMessage(content)
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
-                    .create();
-
-            d.setOnShowListener(new DialogInterface.OnShowListener() {
-
-                @Override
-                public void onShow(DialogInterface dialog) {
-                    Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
-                    b.setOnClickListener(new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(View view) {
-                            String hmac = "", OTP = "", SIaddress = "", PID = "", hash = "";
-
-                            JSONObject MessagetoSI = new JSONObject();
-
-                            try {
-                                OTP = gcmObj.getString("OTP");
-                                SIaddress = gcmObj.getString("SIaddress");
-                                PID = gcmObj.getString("PID");
-                            } catch (JSONException e1) {
-                                // TODO Auto-generated catch block
-                                e1.printStackTrace();
-                            }
-
-                            Log.i(TAG, "Begin Login Procedure");
-                            //generate hmac
-                            try {
-                                hmac = Converter.sha256Hmac(OTP, userhash);
-                                MessagetoSI.put("HMAC", hmac);
-                                MessagetoSI.put("PID", PID);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            //sending message
-                            Log.i(TAG, "Confirm Login to " + SIaddress);
-                            Log.i(TAG, "Sending data " + MessagetoSI);
-                            SendResponse(MessagetoSI, SIaddress);
-                            d.dismiss();
-                            Log.i(TAG, "OK Clicked!");
-                        }
-                    });
-                }
-            });
-            d.show();
-        }
-        else {
+        } else {
             //create alert with input box and data sending
             final AlertDialog d = new AlertDialog.Builder(MainActivity.this)
                     .setView(input)
@@ -295,38 +245,76 @@ public class MainActivity extends Activity implements OnClickListener {
 
                         @Override
                         public void onClick(View view) {
-                            String passphrase="",hmac="",OTP="",SIaddress="",PID="", hash="";
+                            String passphrase="",
+                                   hmac="",
+                                   OTP="",
+                                   SIaddress="",
+                                   PID="",
+                                   hash="",
+                                   result = "";
+
+                            //compare PIN
                             passphrase = input.getText().toString();
+                            if(passphrase.compareTo(getPIN(context)) != 0) {
 
-                            JSONObject MessagetoSI = new JSONObject();
+                                int duration = Toast.LENGTH_LONG;
+                                result = "Incorrect PIN";
+                                Toast toast = Toast.makeText(context, result, duration);
+                                toast.show();
 
-                            try {
-                                OTP = gcmObj.getString("OTP");
-                                SIaddress = gcmObj.getString("SIaddress");
-                                PID = gcmObj.getString("PID");
-                            } catch (JSONException e1) {
-                                // TODO Auto-generated catch block
-                                e1.printStackTrace();
-                            }
+                                d.dismiss();
+                                Log.i(TAG, "Incorrect PIN. Entered :"+passphrase);
 
-                            Log.i(TAG,"Begin Signing Procedure");
-                            //get hash and generate hmac
-                            try {
-                                hash = gcmObj.getString("hash");
-                                hmac = Converter.sha256Hmac(OTP, hash);
-                                MessagetoSI.put("HMAC", hmac);
-                                MessagetoSI.put("PID", PID);
-                                MessagetoSI.put("Passphrase", passphrase);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            } else {
 
-                            //sending message
-                            Log.i(TAG, "Confirm Signing to "+SIaddress);
-                            Log.i(TAG, "Sending data " + MessagetoSI);
-                            SendResponse(MessagetoSI, SIaddress);
-                            d.dismiss();
-                            Log.i(TAG,"OK Clicked!");
+                                //process message
+                                JSONObject MessagetoSI = new JSONObject();
+
+                                try {
+                                    OTP = gcmObj.getString("OTP");
+                                    SIaddress = gcmObj.getString("SIaddress");
+                                    PID = gcmObj.getString("PID");
+                                } catch (JSONException e1) {
+                                    // TODO Auto-generated catch block
+                                    e1.printStackTrace();
+                                }
+
+                                if((messagetype.compareTo("login") == 0) || (messagetype.compareTo("verification") == 0)) {
+
+                                    Log.i(TAG, "Begin Login Procedure");
+                                    //generate hmac
+                                    try {
+                                        hmac = Converter.sha256Hmac(OTP, userhash);
+                                        MessagetoSI.put("HMAC", hmac);
+                                        MessagetoSI.put("PID", PID);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                } else if((messagetype.compareTo("websign") == 0) || (messagetype.compareTo("docsign") == 0)) {
+
+                                    Log.i(TAG,"Begin Signing Procedure");
+                                    //get hash and generate hmac
+                                    try {
+                                        hash = gcmObj.getString("hash");
+                                        hmac = Converter.sha256Hmac(OTP, hash);
+                                        MessagetoSI.put("HMAC", hmac);
+                                        MessagetoSI.put("PID", PID);
+                                        MessagetoSI.put("Passphrase", passphrase);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+
+                                //sending message
+                                Log.i(TAG, "Confirm Login to " + SIaddress);
+                                Log.i(TAG, "Sending data " + MessagetoSI);
+                                SendResponse(MessagetoSI, SIaddress);
+                                d.dismiss();
+                                Log.i(TAG, "OK Clicked!");
+
+                            } //end of correct PIN Block
                         }
                     });
                 }
@@ -337,7 +325,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
     private void parseExtras(Bundle extras){
         String gcmMessage = extras.getString("gcmMsg");
-        Log.i(TAG,"Receive extras "+gcmMessage);
+        Log.i(TAG, "Receive extras " + gcmMessage);
         try {
             gcmObj = new JSONObject(gcmMessage);
         } catch (JSONException e) {
@@ -372,6 +360,14 @@ public class MainActivity extends Activity implements OnClickListener {
         Log.i(TAG, "ID number deleted");
     }
 
+    private void deletePIN(Context context) {
+        final SharedPreferences prefs = getAppPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove(PROPERTY_PIN);
+        editor.commit();
+        Log.i(TAG, "PIN deleted");
+    }
+
     private void storeGCM(Context context, String gcmid) {
         final SharedPreferences prefs = getAppPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
@@ -395,6 +391,16 @@ public class MainActivity extends Activity implements OnClickListener {
         String Content = prefs.getString(PROPERTY_IDNUMBER, "");
         if (Content.isEmpty()) {
             Log.i(TAG, "There's no ID Number in preferences");
+            return null;
+        }
+        return Content;
+    }
+
+    private String getPIN(Context context) {
+        final SharedPreferences prefs = getAppPreferences(context);
+        String Content = prefs.getString(PROPERTY_PIN, "");
+        if (Content.isEmpty()) {
+            Log.i(TAG, "There's no PIN in preferences");
             return null;
         }
         return Content;

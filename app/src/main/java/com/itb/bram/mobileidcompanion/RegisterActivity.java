@@ -35,6 +35,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
     //sharedpreference string
     private static final String PROPERTY_GCMID = "GCMID";
     private static final String PROPERTY_IDNUMBER = "UserIdNumber";
+    private static final String PROPERTY_PIN = "UserPIN";
 
     //Registration variable
     String RegCheckAddr, RegConfirmAddr, RegCode, userinfo, idnumber, datatosave;
@@ -267,10 +268,15 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
                         JSONObject mainObject = new JSONObject(userinfo);
                         idnumber = mainObject.getString("nik");
                         storeIDNumber(context,idnumber);
+
+                        storePIN(context, PIN1.getText().toString());
+
                         userinfo = userinfo.replaceAll("[\\p{Cc}\\p{Cf}\\p{Co}\\p{Cn}]", "");
                         saveUserInfo(userinfo);
+
                         result = "User info saved";
                         finish();
+
                     } catch (JSONException e) {
                         result = "Problem with saving user info";
                     }
@@ -298,6 +304,14 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         final SharedPreferences prefs = getAppPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PROPERTY_IDNUMBER, idnumber);
+        editor.commit();
+        Log.i(TAG, "Storing ID Number");
+    }
+
+    private void storePIN(Context context, String PIN) {
+        final SharedPreferences prefs = getAppPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PROPERTY_PIN, PIN);
         editor.commit();
         Log.i(TAG, "Storing ID Number");
     }
